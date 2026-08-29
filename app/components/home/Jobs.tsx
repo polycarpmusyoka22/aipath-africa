@@ -1,100 +1,95 @@
-const jobs = [
-  {
-    title: "AI Data Annotator",
-    company: "CloudFactory",
-    location: "Remote",
-    salary: "$8–12/hr",
-    type: "Contract",
-  },
-  {
-    title: "LLM Trainer",
-    company: "Outlier AI",
-    location: "Remote",
-    salary: "$20–35/hr",
-    type: "Part-Time",
-  },
-  {
-    title: "AI Prompt Engineer",
-    company: "Invisible Technologies",
-    location: "Remote",
-    salary: "$30–50/hr",
-    type: "Full-Time",
-  },
-  {
-    title: "Machine Learning Engineer",
-    company: "Scale AI",
-    location: "Remote",
-    salary: "$40–70/hr",
-    type: "Full-Time",
-  },
-  {
-    title: "AI Quality Reviewer",
-    company: "DataForce",
-    location: "Remote",
-    salary: "$15–25/hr",
-    type: "Contract",
-  },
-  {
-    title: "Computer Vision Annotator",
-    company: "TELUS Digital",
-    location: "Remote",
-    salary: "$10–18/hr",
-    type: "Part-Time",
-  },
-];
+"use client";
+
+import Link from "next/link";
+import { jobs } from "../../lib/jobs";
 
 export default function Jobs() {
   return (
     <section className="bg-black py-24">
       <div className="mx-auto max-w-7xl px-6">
 
-        <div className="text-center mb-12">
-          <h2 className="text-5xl font-bold text-white">
+        {/* Heading */}
+        <div className="mb-14 text-center">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-cyan-400">
+            Latest Opportunities
+          </p>
+
+          <h2 className="text-4xl font-bold text-white md:text-5xl">
             Featured AI Jobs
           </h2>
 
-          <p className="mt-4 text-lg text-gray-400">
-            Discover high-paying AI opportunities from leading global companies.
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">
+            Discover remote AI, data, and technology opportunities
+            from companies hiring talent around the world.
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {/* Jobs */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {jobs.map((job) => (
             <div
-              key={job.title}
-              className="rounded-3xl border border-white/10 bg-zinc-900 p-8 hover:border-cyan-500 hover:-translate-y-2 transition duration-300"
+              key={job.id}
+              className="group rounded-2xl border border-white/10 bg-zinc-900/80 p-7 transition duration-300 hover:-translate-y-2 hover:border-cyan-500/60"
             >
-              <span className="inline-block rounded-full bg-cyan-500/20 text-cyan-400 px-3 py-1 text-sm">
-                {job.type}
-              </span>
 
-              <h3 className="mt-5 text-2xl font-bold text-white">
+              {/* Top */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10 text-xl">
+                  🤖
+                </div>
+
+                <span className="rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-400">
+                  {job.type}
+                </span>
+              </div>
+
+              {/* Job title */}
+              <h3 className="mt-6 text-xl font-bold text-white group-hover:text-cyan-400 transition">
                 {job.title}
               </h3>
 
-              <p className="mt-3 text-gray-300">
-                🏢 {job.company}
+              {/* Company */}
+              <p className="mt-2 font-medium text-gray-300">
+                {job.company}
               </p>
 
-              <p className="text-gray-400">
-                📍 {job.location}
-              </p>
+              {/* Details */}
+              <div className="mt-5 space-y-2 text-sm text-gray-400">
+                <p>📍 {job.location}</p>
+                <p>💼 {job.category}</p>
+              </div>
 
-              <p className="mt-4 text-cyan-400 font-bold text-lg">
-                {job.salary}
-              </p>
+              {/* Salary */}
+              <div className="mt-6 border-t border-white/10 pt-5">
+                <p className="text-sm text-gray-500">
+                  Estimated pay
+                </p>
 
-              <button className="mt-8 w-full rounded-xl bg-cyan-500 py-3 font-semibold text-black hover:bg-cyan-400 transition">
+                <p className="mt-1 text-xl font-bold text-cyan-400">
+                  {job.salary}
+                </p>
+              </div>
+
+              {/* Apply */}
+              <Link
+                href={`/apply?jobId=${job.id}`}
+                className="mt-6 block w-full rounded-xl bg-cyan-500 py-3 text-center font-semibold text-black transition hover:bg-cyan-400"
+              >
                 Apply Now →
-              </button>
+              </Link>
+
             </div>
           ))}
         </div>
 
-        <div className="mt-16 text-center">
-          <button className="rounded-xl border border-cyan-500 px-8 py-4 text-cyan-400 font-semibold hover:bg-cyan-500 hover:text-black transition">
-            View All Jobs
-          </button>
+        {/* View All Jobs */}
+        <div className="mt-14 text-center">
+          <Link
+            href="/jobs"
+            className="inline-block rounded-xl border border-cyan-500 px-8 py-3 font-semibold text-cyan-400 transition hover:bg-cyan-500 hover:text-black"
+          >
+            View All Jobs →
+          </Link>
         </div>
 
       </div>
