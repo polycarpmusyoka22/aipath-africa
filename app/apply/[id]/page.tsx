@@ -32,16 +32,22 @@ export default function ApplyPage() {
     setLoading(true);
 
     try {
-      // Check that the candidate is logged in
-      const { data: sessionData } = await supabase.auth.getSession();
+      // Get logged-in candidate
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-      if (!sessionData.session) {
+      if (userError || !user) {
         alert("Please log in before submitting an application.");
         router.push("/login");
         return;
       }
 
-      // Check CV file type
+      // Make sure email belongs to logged-in account
+      const userEmail = user.email || email;
+
+      // Check CV type
       const allowedTypes = [
         "application/pdf",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -58,13 +64,15 @@ export default function ApplyPage() {
         return;
       }
 
-      // Create a unique file name
-      const fileExtension = cvFile.name.split(".").pop();
+      // Create unique CV filename
+      const fileExtension =
+        cvFile.name.split(".").pop()?.toLowerCase() || "pdf";
+
       const fileName = `${Date.now()}-${Math.random()
         .toString(36)
         .substring(2)}.${fileExtension}`;
 
-      const filePath = `${sessionData.session.user.id}/${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
 
       // Upload CV
       const { error: uploadError } = await supabase.storage
@@ -83,14 +91,16 @@ export default function ApplyPage() {
           {
             job_id: jobId,
             full_name: fullName,
-            email: email,
+            email: userEmail,
             phone: phone,
             cv_url: filePath,
+            user_id: user.id,
+            status: "pending",
           },
         ]);
 
       if (applicationError) {
-        // Remove uploaded CV if application saving fails
+        // Remove CV if database insert fails
         await supabase.storage
           .from("cvs")
           .remove([filePath]);
@@ -101,13 +111,17 @@ export default function ApplyPage() {
 
       alert("🎉 Application submitted successfully!");
 
+      // Clear form
       setFullName("");
       setEmail("");
       setPhone("");
       setCvFile(null);
 
+      // Go directly to candidate dashboard
+      router.push("/candidate");
+
     } catch (error) {
-      console.error(error);
+      console.error("APPLICATION ERROR:", error);
       alert("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -128,8 +142,12 @@ export default function ApplyPage() {
             Submit your details and CV to apply.
           </p>
 
-          <form onSubmit={submitApplication} className="space-y-5">
+          <form
+            onSubmit={submitApplication}
+            className="space-y-5"
+          >
 
+            {/* Full Name */}
             <div>
               <label className="block mb-2 font-semibold">
                 Full Name
@@ -140,11 +158,14 @@ export default function ApplyPage() {
                 required
                 placeholder="Your full name"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) =>
+                  setFullName(e.target.value)
+                }
                 className="w-full p-4 rounded-lg bg-zinc-800 text-white outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
+            {/* Email */}
             <div>
               <label className="block mb-2 font-semibold">
                 Email
@@ -155,11 +176,14 @@ export default function ApplyPage() {
                 required
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
                 className="w-full p-4 rounded-lg bg-zinc-800 text-white outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
+            {/* Phone */}
             <div>
               <label className="block mb-2 font-semibold">
                 Phone Number
@@ -170,11 +194,14 @@ export default function ApplyPage() {
                 required
                 placeholder="+254..."
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) =>
+                  setPhone(e.target.value)
+                }
                 className="w-full p-4 rounded-lg bg-zinc-800 text-white outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
+            {/* CV */}
             <div>
               <label className="block mb-2 font-semibold">
                 Upload CV
@@ -185,7 +212,9 @@ export default function ApplyPage() {
                 required
                 accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={(e) => {
-                  setCvFile(e.target.files?.[0] || null);
+                  setCvFile(
+                    e.target.files?.[0] || null
+                  );
                 }}
                 className="w-full p-4 rounded-lg bg-zinc-800 text-white"
               />
@@ -201,12 +230,15 @@ export default function ApplyPage() {
               )}
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
               className="w-full bg-green-600 hover:bg-green-700 py-4 rounded-xl font-bold text-lg disabled:opacity-50"
             >
-              {loading ? "Uploading & Submitting..." : "Submit Application"}
+              {loading
+                ? "Uploading & Submitting..."
+                : "Submit Application"}
             </button>
 
           </form>

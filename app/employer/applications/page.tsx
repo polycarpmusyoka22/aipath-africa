@@ -20,6 +20,7 @@ export default function EmployerApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
+  const [openingCV, setOpeningCV] = useState<number | null>(null);
 
   useEffect(() => {
     loadApplications();
@@ -80,6 +81,28 @@ export default function EmployerApplicationsPage() {
     setLoading(false);
   }
 
+  async function viewCV(application: Application) {
+    if (!application.cv_url) {
+      alert("No CV uploaded.");
+      return;
+    }
+
+    setOpeningCV(application.id);
+
+    const { data, error } = await supabase.storage
+      .from("cvs")
+      .createSignedUrl(application.cv_url, 3600);
+
+    setOpeningCV(null);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank");
+  }
+
   async function updateStatus(
     applicationId: number,
     status: string
@@ -135,7 +158,7 @@ export default function EmployerApplicationsPage() {
 
           <button
             onClick={() =>
-              (window.location.href = "/employer")
+              (window.location.href = "/employer/dashboard")
             }
             className="bg-zinc-800 hover:bg-zinc-700 px-5 py-3 rounded-xl"
           >
@@ -216,14 +239,15 @@ export default function EmployerApplicationsPage() {
                 <div className="flex flex-wrap gap-3 mt-7">
 
                   {application.cv_url && (
-                    <a
-                      href={application.cv_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-blue-600 hover:bg-blue-700 px-5 py-3 rounded-xl font-bold"
+                    <button
+                      onClick={() => viewCV(application)}
+                      disabled={openingCV === application.id}
+                      className="bg-blue-600 hover:bg-blue-700 px-5 py-3 rounded-xl font-bold disabled:opacity-50"
                     >
-                      📄 View CV
-                    </a>
+                      {openingCV === application.id
+                        ? "Opening CV..."
+                        : "📄 View CV"}
+                    </button>
                   )}
 
                   <button

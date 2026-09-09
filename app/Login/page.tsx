@@ -16,21 +16,37 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
+    const { data, error } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
     if (error) {
+      setLoading(false);
       alert(error.message);
       return;
     }
 
+    const user = data.user;
+
+    if (!user) {
+      setLoading(false);
+      alert("Login failed. Please try again.");
+      return;
+    }
+
+    const role = user.user_metadata?.role;
+
+    setLoading(false);
+
     alert("Login successful!");
 
-    router.push("/employer/dashboard");
+    if (role === "employer") {
+      router.push("/employer/dashboard");
+    } else {
+      router.push("/candidate");
+    }
   }
 
   return (

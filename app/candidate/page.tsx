@@ -1,96 +1,158 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import Link from "next/link";
+import { supabase } from "../lib/supabase";
 
 type Application = {
-  id: number;
-  job_id: number;
-  name: string;
+  id: string | number;
+  job_id: string | number;
   email: string;
-  phone: string;
-  cv_url: string;
+  status: string | null;
   created_at: string;
-  status: string;
 };
 
 type Job = {
-  id: number;
+  id: string | number;
   title: string;
   company: string;
-  location: string;
-  salary: string;
-  type: string;
 };
 
-export default function CandidateDashboard() {
-  const router = useRouter();
-
+export default function CandidatePage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadDashboard();
+    loadCandidateDashboard();
   }, []);
 
-  async function loadDashboard() {
-    const { data: sessionData } =
-      await supabase.auth.getSession();
+  async function loadCandidateDashboard() {
+    setLoading(true);
 
-    if (!sessionData.session) {
-      router.push("/Login");
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      window.location.href = "/Login";
       return;
     }
 
-    const user = sessionData.session.user;
+    const userEmail = user.email || "";
 
-    const { data, error } = await supabase
-      .from("applications")
-      .select("*")
-      .eq("email", user.email)
-      .order("created_at", { ascending: false });
+    setEmail(userEmail);
 
-    if (error) {
-      console.error(error);
-      alert(error.message);
+    // Load profile
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.name) {
+      setName(profile.name);
+    }
+
+    // Load applications belonging to this candidate
+    const { data: applicationData, error: applicationError } =
+      await supabase
+        .from("applications")
+        .select(
+          "id, job_id, email, status, created_at"
+        )
+        .eq("user_id", user.id)
+        .order("created_at", {
+          ascending: false,
+        });
+
+    if (applicationError) {
+      console.error(
+        "Applications error:",
+        applicationError
+      );
+
+      setApplications([]);
       setLoading(false);
       return;
     }
 
-    setApplications(data || []);
+    setApplications(applicationData || []);
 
-    const jobIds = (data || []).map(
-      (application) => application.job_id
-    );
+    // Find jobs connected to applications
+    const jobIds = [
+      ...new Set(
+        (applicationData || []).map(
+          (application) => application.job_id
+        )
+      ),
+    ];
 
     if (jobIds.length > 0) {
-      const { data: jobsData } = await supabase
-        .from("jobs")
-        .select("*")
-        .in("id", jobIds);
+      const { data: jobData, error: jobError } =
+        await supabase
+          .from("jobs")
+          .select("id, title, company")
+          .in("id", jobIds);
 
-      setJobs(jobsData || []);
+      if (jobError) {
+        console.error(
+          "Jobs error:",
+          jobError
+        );
+      } else {
+        setJobs(jobData || []);
+      }
+    } else {
+      setJobs([]);
     }
 
     setLoading(false);
   }
 
-  function getJob(jobId: number) {
-    return jobs.find((job) => job.id === jobId);
+  function getJob(jobId: string | number) {
+    return jobs.find(
+      (job) =>
+        String(job.id) === String(jobId)
+    );
   }
 
-  async function logout() {
-    await supabase.auth.signOut();
-    router.push("/Login");
+  function formatDate(date: string) {
+    return new Date(date).toLocaleDateString(
+      "en-KE",
+      {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }
+    );
+  }
+
+  function statusStyle(status: string | null) {
+    switch (
+      (status || "pending").toLowerCase()
+    ) {
+      case "accepted":
+        return "bg-green-500/10 text-green-400 border-green-500/30";
+
+      case "rejected":
+        return "bg-red-500/10 text-red-400 border-red-500/30";
+
+      case "reviewing":
+        return "bg-yellow-500/10 text-yellow-400 border-yellow-500/30";
+
+      default:
+        return "bg-blue-500/10 text-blue-400 border-blue-500/30";
+    }
   }
 
   if (loading) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-gray-400">
-          Loading dashboard...
+        <p className="text-xl text-gray-400">
+          Loading your dashboard...
         </p>
       </main>
     );
@@ -100,172 +162,204 @@ export default function CandidateDashboard() {
     <main className="min-h-screen bg-black text-white px-6 py-12">
       <div className="max-w-6xl mx-auto">
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 mb-10">
+        {/* Header */}
+        <div className="mb-10">
+          <p className="text-cyan-400 font-semibold">
+            AIPath Africa
+          </p>
 
-          <div>
-            <h1 className="text-4xl font-bold">
-              Candidate Dashboard
-            </h1>
+          <h1 className="text-4xl md:text-5xl font-bold mt-2">
+            Candidate Dashboard
+          </h1>
 
-            <p className="text-gray-400 mt-2">
-              Track your AI job applications.
-            </p>
-          </div>
+          <p className="text-gray-400 mt-3">
+            Welcome back
+            {name ? `, ${name}` : ""}.
+            Manage your profile and track your
+            applications.
+          </p>
 
-          <div className="flex flex-wrap gap-3">
+          <p className="text-gray-500 mt-1">
+            {email}
+          </p>
+        </div>
 
-            <button
-              onClick={() =>
-                router.push("/candidate/profile")
-              }
-              className="bg-blue-600 hover:bg-blue-700 px-5 py-3 rounded-xl font-bold"
-            >
+        {/* Quick Actions */}
+        <div className="grid md:grid-cols-3 gap-5 mb-10">
+
+          <Link
+            href="/candidate/profile"
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-cyan-500/50 transition"
+          >
+            <div className="text-3xl mb-3">
+              👤
+            </div>
+
+            <h2 className="text-xl font-bold">
               My Profile
-            </button>
-
-            <button
-              onClick={() => router.push("/jobs")}
-              className="bg-green-600 hover:bg-green-700 px-5 py-3 rounded-xl font-bold"
-            >
-              Browse Jobs
-            </button>
-
-            <button
-              onClick={logout}
-              className="bg-red-600 hover:bg-red-700 px-5 py-3 rounded-xl font-bold"
-            >
-              Logout
-            </button>
-
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6 mb-10">
-
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-            <p className="text-gray-400">
-              Applications
-            </p>
-
-            <p className="text-4xl font-bold mt-2">
-              {applications.length}
-            </p>
-          </div>
-
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-            <p className="text-gray-400">
-              Shortlisted
-            </p>
-
-            <p className="text-4xl font-bold mt-2 text-green-400">
-              {
-                applications.filter(
-                  (application) =>
-                    application.status === "shortlisted"
-                ).length
-              }
-            </p>
-          </div>
-
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-            <p className="text-gray-400">
-              Pending
-            </p>
-
-            <p className="text-4xl font-bold mt-2 text-yellow-400">
-              {
-                applications.filter(
-                  (application) =>
-                    application.status === "pending"
-                ).length
-              }
-            </p>
-          </div>
-
-        </div>
-
-        <h2 className="text-2xl font-bold mb-6">
-          My Applications
-        </h2>
-
-        {applications.length === 0 ? (
-
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-10 text-center">
-
-            <h3 className="text-xl font-bold">
-              No applications yet
-            </h3>
+            </h2>
 
             <p className="text-gray-400 mt-2">
-              Browse jobs and start applying.
+              Update your profile and CV.
             </p>
+          </Link>
 
-            <button
-              onClick={() => router.push("/jobs")}
-              className="mt-6 bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-bold"
+          <Link
+            href="/jobs"
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-cyan-500/50 transition"
+          >
+            <div className="text-3xl mb-3">
+              💼
+            </div>
+
+            <h2 className="text-xl font-bold">
+              Find Jobs
+            </h2>
+
+            <p className="text-gray-400 mt-2">
+              Browse available AI opportunities.
+            </p>
+          </Link>
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+            <div className="text-3xl mb-3">
+              📋
+            </div>
+
+            <h2 className="text-xl font-bold">
+              Applications
+            </h2>
+
+            <p className="text-gray-400 mt-2">
+              {applications.length} submitted
+              application
+              {applications.length === 1
+                ? ""
+                : "s"}
+              .
+            </p>
+          </div>
+
+        </div>
+
+        {/* Applications */}
+        <section>
+
+          <div className="flex items-center justify-between mb-6">
+
+            <div>
+              <h2 className="text-3xl font-bold">
+                My Applications
+              </h2>
+
+              <p className="text-gray-400 mt-1">
+                Track the jobs you have applied for.
+              </p>
+            </div>
+
+            <Link
+              href="/jobs"
+              className="hidden md:block bg-cyan-500 text-black px-5 py-3 rounded-xl font-bold hover:bg-cyan-400 transition"
             >
-              Browse Jobs
-            </button>
+              Find More Jobs →
+            </Link>
 
           </div>
 
-        ) : (
+          {applications.length === 0 ? (
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-10 text-center">
 
-          <div className="space-y-5">
+              <div className="text-5xl mb-4">
+                📭
+              </div>
 
-            {applications.map((application) => {
+              <h3 className="text-2xl font-bold">
+                No applications yet
+              </h3>
 
-              const job = getJob(application.job_id);
+              <p className="text-gray-400 mt-2 mb-6">
+                You haven't submitted any job
+                applications yet.
+              </p>
 
-              return (
-                <div
-                  key={application.id}
-                  className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6"
-                >
+              <Link
+                href="/jobs"
+                className="inline-block bg-cyan-500 text-black px-6 py-3 rounded-xl font-bold hover:bg-cyan-400 transition"
+              >
+                Browse AI Jobs
+              </Link>
 
-                  <h3 className="text-2xl font-bold">
-                    {job?.title || "Job"}
-                  </h3>
+            </div>
+          ) : (
+            <div className="space-y-5">
 
-                  <p className="text-green-400 mt-2">
-                    {job?.company || "Company"}
-                  </p>
+              {applications.map(
+                (application) => {
+                  const job = getJob(
+                    application.job_id
+                  );
 
-                  <p className="text-gray-400 mt-2">
-                    {job?.location}
-                  </p>
-
-                  <p className="text-blue-400 mt-2">
-                    {job?.salary}
-                  </p>
-
-                  <div className="mt-5">
-
-                    <span
-                      className={`px-4 py-2 rounded-full font-semibold ${
-                        application.status === "shortlisted"
-                          ? "bg-green-500/20 text-green-400"
-                          : application.status === "rejected"
-                          ? "bg-red-500/20 text-red-400"
-                          : "bg-yellow-500/20 text-yellow-400"
-                      }`}
+                  return (
+                    <div
+                      key={application.id}
+                      className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 hover:border-cyan-500/40 transition"
                     >
-                      {application.status === "shortlisted"
-                        ? "✓ Shortlisted"
-                        : application.status === "rejected"
-                        ? "✕ Rejected"
-                        : "Pending Review"}
-                    </span>
 
-                  </div>
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
 
-                </div>
-              );
-            })}
+                        <div>
 
-          </div>
+                          <h3 className="text-2xl font-bold">
+                            {job?.title ||
+                              `Job #${application.job_id}`}
+                          </h3>
 
-        )}
+                          <p className="text-gray-300 mt-1">
+                            {job?.company ||
+                              "AIPath Africa opportunity"}
+                          </p>
+
+                          <p className="text-gray-500 text-sm mt-3">
+                            Applied on{" "}
+                            {formatDate(
+                              application.created_at
+                            )}
+                          </p>
+
+                        </div>
+
+                        <span
+                          className={`px-4 py-2 rounded-full border font-semibold capitalize ${statusStyle(
+                            application.status
+                          )}`}
+                        >
+                          {application.status ||
+                            "Pending"}
+                        </span>
+
+                      </div>
+
+                    </div>
+                  );
+                }
+              )}
+
+            </div>
+          )}
+
+        </section>
+
+        {/* Mobile button */}
+        <div className="mt-8 md:hidden">
+
+          <Link
+            href="/jobs"
+            className="block text-center bg-cyan-500 text-black px-6 py-4 rounded-xl font-bold"
+          >
+            Find More Jobs →
+          </Link>
+
+        </div>
 
       </div>
     </main>
