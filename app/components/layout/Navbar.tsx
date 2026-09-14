@@ -81,7 +81,7 @@ export default function Navbar() {
 
           {/* Register */}
           <Link
-            href="/Register"
+            href="/join"
             className="px-5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-semibold transition"
           >
             Register
@@ -157,7 +157,7 @@ export default function Navbar() {
               </Link>
 
               <Link
-                href="/Register"
+                href="/join"
                 onClick={() => setOpen(false)}
                 className="w-full py-3 text-center rounded-lg bg-cyan-500 text-black font-bold"
               >

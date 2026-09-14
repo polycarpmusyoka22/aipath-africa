@@ -16,7 +16,7 @@ export default function CTA() {
 
         <div className="mt-10 flex justify-center gap-4 flex-wrap">
           <Link
-            href="/Register"
+            href="/join"
             className="rounded-xl bg-white px-8 py-4 font-semibold text-blue-700 hover:bg-gray-100 transition"
           >
             Join Free
