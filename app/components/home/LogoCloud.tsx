@@ -13,17 +13,16 @@ export default function LogoCloud() {
   return (
     <section className="bg-[#0d1117] py-20">
       <div className="mx-auto max-w-7xl px-6">
-
         <h2 className="text-center text-3xl font-bold text-white">
-          Trusted by the AI Industry
+          Companies in the AI Ecosystem
         </h2>
 
         <p className="mt-4 text-center text-gray-400">
-          Connecting talent with leading AI companies worldwide.
+          Examples of leading organizations working across AI, data, and
+          technology.
         </p>
 
         <div className="mt-12 grid grid-cols-2 gap-6 md:grid-cols-4">
-
           {companies.map((company) => (
             <div
               key={company}
@@ -34,9 +33,7 @@ export default function LogoCloud() {
               </h3>
             </div>
           ))}
-
         </div>
-
       </div>
     </section>
   );

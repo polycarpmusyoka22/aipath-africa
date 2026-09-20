@@ -3,168 +3,115 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { Menu, X } from "lucide-react";
+
+const navLinks = [
+  { name: "Home", href: "/" },
+  { name: "Jobs", href: "/jobs" },
+  { name: "Services", href: "/services" },
+  { name: "Learning", href: "/learning" },
+  { name: "For Employers", href: "/hire" },
+];
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/95 backdrop-blur">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
+        <Link
+          href="/"
+          className="flex items-center"
+          onClick={() => setMobileOpen(false)}
+        >
           <Image
             src="/aipath-logo.png"
-            alt="AIPath Africa Logo"
-            width={48}
-            height={48}
-            className="h-11 w-11 rounded-full object-cover"
+            alt="AIPath Africa"
+            width={180}
+            height={50}
             priority
+            className="h-auto w-[150px] sm:w-[170px]"
           />
-
-          <div>
-            <h1 className="font-bold text-xl">AIPath Africa</h1>
-            <p className="text-xs text-gray-400">
-              Global AI Careers
-            </p>
-          </div>
         </Link>
 
-        {/* Desktop Menu */}
-        <nav className="hidden md:flex items-center gap-8">
-          <Link
-            href="/"
-            className="hover:text-cyan-400 transition"
-          >
-            Home
-          </Link>
+        {/* Desktop Navigation */}
+        <div className="hidden items-center gap-7 md:flex">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`text-sm font-medium transition ${
+                link.href === "/hire"
+                  ? "text-cyan-300 hover:text-cyan-200"
+                  : "text-slate-200 hover:text-cyan-300"
+              }`}
+            >
+              {link.name}
+            </Link>
+          ))}
 
           <Link
-            href="/jobs"
-            className="hover:text-cyan-400 transition"
-          >
-            Jobs
-          </Link>
-
-          <Link
-            href="/services"
-            className="hover:text-cyan-400 transition"
-          >
-            Services
-          </Link>
-
-          <Link
-            href="/about"
-            className="hover:text-cyan-400 transition"
-          >
-            About
-          </Link>
-
-          <Link
-            href="/contact"
-            className="hover:text-cyan-400 transition"
-          >
-            Contact
-          </Link>
-        </nav>
-
-        {/* Desktop Buttons */}
-        <div className="hidden md:flex items-center gap-3">
-
-          {/* Login */}
-          <Link
-            href="/Login"
-            className="px-5 py-2 rounded-lg border border-zinc-700 hover:border-cyan-500 hover:text-cyan-400 transition"
+            href="/login"
+            className="text-sm font-medium text-slate-200 transition hover:text-cyan-300"
           >
             Login
           </Link>
 
-          {/* Register */}
           <Link
-            href="/join"
-            className="px-5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-semibold transition"
+            href="/register"
+            className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
           >
             Register
           </Link>
-
         </div>
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-3xl"
-          onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
+          type="button"
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="rounded-lg p-2 text-white transition hover:bg-white/10 md:hidden"
         >
-          ☰
+          {mobileOpen ? <X size={26} /> : <Menu size={26} />}
         </button>
-      </div>
+      </nav>
 
-      {/* Mobile Menu */}
-      {open && (
-        <div className="md:hidden bg-zinc-950 border-t border-zinc-800 px-6 py-6">
-
-          <div className="flex flex-col gap-5">
-
-            <Link
-              href="/"
-              onClick={() => setOpen(false)}
-              className="hover:text-cyan-400"
-            >
-              Home
-            </Link>
-
-            <Link
-              href="/jobs"
-              onClick={() => setOpen(false)}
-              className="hover:text-cyan-400"
-            >
-              Jobs
-            </Link>
-
-            <Link
-              href="/services"
-              onClick={() => setOpen(false)}
-              className="hover:text-cyan-400"
-            >
-              Services
-            </Link>
-
-            <Link
-              href="/about"
-              onClick={() => setOpen(false)}
-              className="hover:text-cyan-400"
-            >
-              About
-            </Link>
-
-            <Link
-              href="/contact"
-              onClick={() => setOpen(false)}
-              className="hover:text-cyan-400"
-            >
-              Contact
-            </Link>
-
-            {/* Mobile Buttons */}
-            <div className="pt-4 flex flex-col gap-3">
-
+      {/* Mobile Navigation */}
+      {mobileOpen && (
+        <div className="border-t border-white/10 bg-slate-950 md:hidden">
+          <div className="mx-auto flex max-w-7xl flex-col px-6 py-5">
+            {navLinks.map((link) => (
               <Link
-                href="/Login"
-                onClick={() => setOpen(false)}
-                className="w-full py-3 text-center rounded-lg border border-zinc-700 hover:border-cyan-500"
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className={`border-b border-white/10 py-4 text-base font-medium transition ${
+                  link.href === "/hire"
+                    ? "text-cyan-300 hover:text-cyan-200"
+                    : "text-slate-200 hover:text-cyan-300"
+                }`}
               >
-                Login
+                {link.name}
               </Link>
+            ))}
 
-              <Link
-                href="/join"
-                onClick={() => setOpen(false)}
-                className="w-full py-3 text-center rounded-lg bg-cyan-500 text-black font-bold"
-              >
-                Register
-              </Link>
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="border-b border-white/10 py-4 text-base font-medium text-slate-200 transition hover:text-cyan-300"
+            >
+              Login
+            </Link>
 
-            </div>
+            <Link
+              href="/register"
+              onClick={() => setMobileOpen(false)}
+              className="mt-4 rounded-xl bg-cyan-500 px-5 py-3 text-center font-semibold text-slate-950 transition hover:bg-cyan-400"
+            >
+              Register
+            </Link>
           </div>
         </div>
       )}
