@@ -52,7 +52,7 @@ function ApplyPageContent() {
 
     if (!user) {
       alert("Please login before applying.");
-      router.push("/Login");
+      router.push("/login");
       return;
     }
 
@@ -110,7 +110,7 @@ function ApplyPageContent() {
     if (!user) {
       setSubmitting(false);
       alert("Please login again.");
-      router.push("/Login");
+      router.push("/login");
       return;
     }
 

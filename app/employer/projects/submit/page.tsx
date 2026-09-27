@@ -40,7 +40,7 @@ export default function SubmitProjectPage() {
 
       if (!user) {
         alert("Please login first.");
-        router.push("/Login");
+        router.push("/login");
         return;
       }
 

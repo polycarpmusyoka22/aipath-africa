@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -15,6 +16,51 @@ const navLinks = [
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function checkAdmin() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        if (mounted) setIsAdmin(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!error && data?.is_admin === true && mounted) {
+        setIsAdmin(true);
+      } else if (mounted) {
+        setIsAdmin(false);
+      }
+    }
+
+    checkAdmin();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      checkAdmin();
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  function closeMobileMenu() {
+    setMobileOpen(false);
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/95 backdrop-blur">
@@ -23,7 +69,7 @@ export default function Navbar() {
         <Link
           href="/"
           className="flex items-center"
-          onClick={() => setMobileOpen(false)}
+          onClick={closeMobileMenu}
         >
           <Image
             src="/aipath-logo.png"
@@ -51,6 +97,15 @@ export default function Navbar() {
             </Link>
           ))}
 
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="text-sm font-semibold text-green-400 transition hover:text-green-300"
+            >
+              Admin
+            </Link>
+          )}
+
           <Link
             href="/login"
             className="text-sm font-medium text-slate-200 transition hover:text-cyan-300"
@@ -59,7 +114,7 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="/register"
+            href="/join"
             className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
           >
             Register
@@ -86,7 +141,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setMobileOpen(false)}
+                onClick={closeMobileMenu}
                 className={`border-b border-white/10 py-4 text-base font-medium transition ${
                   link.href === "/hire"
                     ? "text-cyan-300 hover:text-cyan-200"
@@ -97,17 +152,27 @@ export default function Navbar() {
               </Link>
             ))}
 
+            {isAdmin && (
+              <Link
+                href="/admin"
+                onClick={closeMobileMenu}
+                className="border-b border-white/10 py-4 text-base font-semibold text-green-400 transition hover:text-green-300"
+              >
+                Admin
+              </Link>
+            )}
+
             <Link
               href="/login"
-              onClick={() => setMobileOpen(false)}
+              onClick={closeMobileMenu}
               className="border-b border-white/10 py-4 text-base font-medium text-slate-200 transition hover:text-cyan-300"
             >
               Login
             </Link>
 
             <Link
-              href="/register"
-              onClick={() => setMobileOpen(false)}
+              href="/join"
+              onClick={closeMobileMenu}
               className="mt-4 rounded-xl bg-cyan-500 px-5 py-3 text-center font-semibold text-slate-950 transition hover:bg-cyan-400"
             >
               Register

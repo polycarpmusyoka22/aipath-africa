@@ -23,7 +23,7 @@ export default function EmployerPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      router.push("/Login");
+      router.push("/login");
       return;
     }
 

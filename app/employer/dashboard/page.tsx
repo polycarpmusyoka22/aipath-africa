@@ -63,7 +63,7 @@ export default function EmployerDashboard() {
     }
 
     if (!user) {
-      window.location.href = "/Login";
+      window.location.href = "/login";
       return;
     }
 
@@ -184,7 +184,7 @@ export default function EmployerDashboard() {
   async function logout() {
     await supabase.auth.signOut();
 
-    window.location.href = "/Login";
+    window.location.href = "/login";
   }
 
   // ==========================================

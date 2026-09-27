@@ -42,7 +42,7 @@ export default function ProjectManagementPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      window.location.href = "/Login";
+      window.location.href = "/login";
       return;
     }
 

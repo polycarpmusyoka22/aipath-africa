@@ -27,7 +27,7 @@ export default function NewEmployerJobPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      router.push("/Login");
+      router.push("/login");
       return;
     }
 
@@ -51,7 +51,7 @@ export default function NewEmployerJobPage() {
     if (!user) {
       alert("Please login first.");
       setPosting(false);
-      router.push("/Login");
+      router.push("/login");
       return;
     }
 

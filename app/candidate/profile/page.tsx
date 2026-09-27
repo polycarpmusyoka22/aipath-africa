@@ -27,7 +27,7 @@ export default function CandidateProfile() {
       await supabase.auth.getSession();
 
     if (!sessionData.session) {
-      window.location.href = "/Login";
+      window.location.href = "/login";
       return;
     }
 

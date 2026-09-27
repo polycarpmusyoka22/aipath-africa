@@ -41,7 +41,7 @@ export default function RegisterPage() {
     setLoading(false);
 
     // Go to Login after successful registration
-    router.push("/Login");
+    router.push("/login");
   }
 
   return (
@@ -100,7 +100,7 @@ export default function RegisterPage() {
           Already have an account?{" "}
           <button
             type="button"
-            onClick={() => router.push("/Login")}
+            onClick={() => router.push("/login")}
             className="text-cyan-400 hover:text-cyan-300 font-semibold"
           >
             Login

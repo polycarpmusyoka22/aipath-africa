@@ -63,12 +63,12 @@ export default function AdminPage() {
           `Authentication error:\n\n${userError.message}`
         );
 
-        router.push("/Login");
+        router.push("/login");
         return;
       }
 
       if (!user) {
-        router.push("/Login");
+        router.push("/login");
         return;
       }
 
