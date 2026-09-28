@@ -27,17 +27,15 @@ export default function Navbar() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        if (mounted) setIsAdmin(false);
+        if (mounted) {
+          setIsAdmin(false);
+        }
         return;
       }
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("is_admin")
-        .eq("id", user.id)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("is_admin");
 
-      if (!error && data?.is_admin === true && mounted) {
+      if (!error && data === true && mounted) {
         setIsAdmin(true);
       } else if (mounted) {
         setIsAdmin(false);
@@ -97,6 +95,7 @@ export default function Navbar() {
             </Link>
           ))}
 
+          {/* Admin - only for the designated admin account */}
           {isAdmin && (
             <Link
               href="/admin"
@@ -106,6 +105,7 @@ export default function Navbar() {
             </Link>
           )}
 
+          {/* Login */}
           <Link
             href="/login"
             className="text-sm font-medium text-slate-200 transition hover:text-cyan-300"
@@ -113,6 +113,7 @@ export default function Navbar() {
             Login
           </Link>
 
+          {/* Register */}
           <Link
             href="/join"
             className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
@@ -152,6 +153,7 @@ export default function Navbar() {
               </Link>
             ))}
 
+            {/* Admin - only for the designated admin account */}
             {isAdmin && (
               <Link
                 href="/admin"
@@ -162,6 +164,7 @@ export default function Navbar() {
               </Link>
             )}
 
+            {/* Login */}
             <Link
               href="/login"
               onClick={closeMobileMenu}
@@ -170,6 +173,7 @@ export default function Navbar() {
               Login
             </Link>
 
+            {/* Register */}
             <Link
               href="/join"
               onClick={closeMobileMenu}
