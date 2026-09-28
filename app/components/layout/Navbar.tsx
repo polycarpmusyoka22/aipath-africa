@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
+const ADMIN_EMAIL = "polycarpmusyoka22@gmail.com";
+
 const navLinks = [
   { name: "Home", href: "/" },
   { name: "Jobs", href: "/jobs" },
@@ -26,19 +28,10 @@ export default function Navbar() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) {
-        if (mounted) {
-          setIsAdmin(false);
-        }
-        return;
-      }
+      const email = user?.email?.toLowerCase().trim();
 
-      const { data, error } = await supabase.rpc("is_admin");
-
-      if (!error && data === true && mounted) {
-        setIsAdmin(true);
-      } else if (mounted) {
-        setIsAdmin(false);
+      if (mounted) {
+        setIsAdmin(email === ADMIN_EMAIL.toLowerCase());
       }
     }
 
@@ -95,7 +88,6 @@ export default function Navbar() {
             </Link>
           ))}
 
-          {/* Admin - only for the designated admin account */}
           {isAdmin && (
             <Link
               href="/admin"
@@ -105,7 +97,6 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Login */}
           <Link
             href="/login"
             className="text-sm font-medium text-slate-200 transition hover:text-cyan-300"
@@ -113,7 +104,6 @@ export default function Navbar() {
             Login
           </Link>
 
-          {/* Register */}
           <Link
             href="/join"
             className="rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
@@ -153,7 +143,6 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Admin - only for the designated admin account */}
             {isAdmin && (
               <Link
                 href="/admin"
@@ -164,7 +153,6 @@ export default function Navbar() {
               </Link>
             )}
 
-            {/* Login */}
             <Link
               href="/login"
               onClick={closeMobileMenu}
@@ -173,7 +161,6 @@ export default function Navbar() {
               Login
             </Link>
 
-            {/* Register */}
             <Link
               href="/join"
               onClick={closeMobileMenu}
